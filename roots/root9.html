@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Animated Smooth-Blended Tree (Variable Branching with Width^2 Conservation)</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #ffffff; /* Page background */
+    }
+    /* The canvas background is white */
+    canvas {
+      display: block;
+      background-color: #000000;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    /********************************************************************
+     * 1. Color Interpolation Utilities
+     ********************************************************************/
+    // Updated array of color stops (from darkest to a mid-tone), discarding the lightest color.
+    const colorStops = [
+//      { stop: 0.0,  color: "#220901" },
+      { stop: 0.0,  color: "#111111" },
+      { stop: 0.33, color: "#666666" },
+      { stop: 0.50, color: "#bbbbbb" },
+      { stop: 1.0,  color: "#ffffff" }
+    ];
+
+    // Parse a hex color string (e.g., "#220901") into [r, g, b]
+    function parseHexColor(hex) {
+      if (hex.startsWith("#")) {
+        hex = hex.slice(1);
+      }
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      return [r, g, b];
+    }
+
+    // Linear interpolation for numbers
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    // Linear interpolation for two hex colors
+    function lerpColor(colorA, colorB, t) {
+      const [r1, g1, b1] = parseHexColor(colorA);
+      const [r2, g2, b2] = parseHexColor(colorB);
+      const r = Math.round(lerp(r1, r2, t));
+      const g = Math.round(lerp(g1, g2, t));
+      const b = Math.round(lerp(b1, b2, t));
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // Given a fraction f in [0..1], return a color by interpolating
+    // between the nearest color stops.
+    function getSmoothColorForFraction(f) {
+      f = Math.max(0, Math.min(1, f)); // clamp to [0, 1]
+      for (let i = 0; i < colorStops.length - 1; i++) {
+        const c1 = colorStops[i];
+        const c2 = colorStops[i + 1];
+        if (f >= c1.stop && f <= c2.stop) {
+          const localT = (f - c1.stop) / (c2.stop - c1.stop);
+          return lerpColor(c1.color, c2.color, localT);
+        }
+      }
+      return colorStops[colorStops.length - 1].color;
+    }
+
+    // Convert a lineWidth into a fraction and return the smooth-blended color.
+    function getSmoothColorForLineWidth(lineWidth) {
+      const MAX_LINE_WIDTH = 10;  // Adjust if necessary.
+      const fraction = Math.min(lineWidth, MAX_LINE_WIDTH) / MAX_LINE_WIDTH;
+      return getSmoothColorForFraction(fraction);
+    }
+
+    /********************************************************************
+     * 2. Tree Generation & Rendering
+     ********************************************************************/
+    // Global list to store drawn segments for collision checking.
+    let segments = [];
+
+    // Resize the canvas to take up the entire viewport.
+    function resizeCanvas(canvas) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    // Generate a random length (uniformly distributed for simplicity).
+    function getRandomLength(min, max) {
+      return Math.random()**2 * (max - min) + min;
+    }
+
+    // Recursively generate a tree node.
+    // Each node is given a random length and a specified width.
+    // If the node’s width is above 0.1, randomly decide on 0–4 children.
+    // The children widths are determined so that the sum of their squares equals the square of the parent's width.
+    function generateNode(width) {
+      let node = {
+        length: getRandomLength(2.0, 50.0),
+        width: width,
+        children: []
+      };
+
+      if (width > 0.1) {
+        // Randomly decide on a number of children (0 to 4)
+        let childCount = Math.floor(Math.random()**2 * 3) + 1; // 1, 2,or 3
+        if (childCount > 0) {
+          // Partition parent's width^2 into childCount random parts.
+          let randomParts = [];
+          let total = 0;
+          for (let i = 0; i < childCount; i++) {
+            // You can use Math.random() or a skewed version.
+            let part = Math.random();
+            randomParts.push(part);
+            total += part;
+          }
+          // For each child, compute its width.
+          for (let i = 0; i < childCount; i++) {
+            let r = randomParts[i] / total;
+            // childWidth^2 = parent's width^2 * r  =>  childWidth = parentWidth * sqrt(r)
+            let childWidth = width * Math.sqrt(r);
+            node.children.push(generateNode(childWidth));
+          }
+        }
+      }
+      return node;
+    }
+
+    // Collision detection helpers.
+    function ccw(xA, yA, xB, yB, xC, yC) {
+      return (yC - yA) * (xB - xA) > (yB - yA) * (xC - xA);
+    }
+    function segmentsIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+      // Endpoints that match are not considered intersections.
+      if ((x1 === x3 && y1 === y3) || (x1 === x4 && y1 === y4) ||
+          (x2 === x3 && y2 === y3) || (x2 === x4 && y2 === y4)) {
+        return false;
+      }
+      return (ccw(x1, y1, x3, y3, x4, y4) !== ccw(x2, y2, x3, y3, x4, y4)) &&
+             (ccw(x1, y1, x2, y2, x3, y3) !== ccw(x1, y1, x2, y2, x4, y4));
+    }
+
+    // Find all candidate angles (using a range of ±0.3) and return one randomly.
+    // Candidate angles are computed as: baseAngle + desiredOffset + delta.
+    function findValidAngle(x, y, baseAngle, length, segments, desiredOffset) {
+      let candidateAngles = [];
+      for (let delta = -0.3; delta <= 0.3; delta += 0.05) {
+        candidateAngles.push(baseAngle + desiredOffset + delta);
+      }
+      let validAngles = [];
+      for (let angle of candidateAngles) {
+        let testX = x + length * Math.cos(angle);
+        let testY = y + length * Math.sin(angle);
+        let valid = true;
+        for (let seg of segments) {
+          if (segmentsIntersect(x, y, testX, testY, seg.x1, seg.y1, seg.x2, seg.y2)) {
+            valid = false;
+            break;
+          }
+        }
+        if (valid) {
+          validAngles.push(angle);
+        }
+      }
+      if (validAngles.length > 0) {
+        const randomIndex = Math.floor(Math.random() * validAngles.length);
+        return validAngles[randomIndex];
+      }
+      return null;
+    }
+
+    // Animate drawing a branch.
+    function animateBranch(ctx, startX, startY, endX, endY, width, duration, callback) {
+      let startTime = null;
+      // Determine the smooth blended color based on line width.
+      const strokeColor = getSmoothColorForLineWidth(width);
+
+      function animateStep(timestamp) {
+        if (!startTime) startTime = timestamp;
+        let progress = (timestamp - startTime) / duration;
+        if (progress > 1) progress = 1;
+
+        let currentX = startX + (endX - startX) * progress;
+        let currentY = startY + (endY - startY) * progress;
+
+        ctx.lineWidth = width;
+        ctx.strokeStyle = strokeColor;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+
+        if (progress < 1) {
+          requestAnimationFrame(animateStep);
+        } else {
+          callback();
+        }
+      }
+      requestAnimationFrame(animateStep);
+    }
+
+    // Recursively animate the tree.
+    // For nodes with children, we distribute branch angles over a fixed range.
+    function animateTree(ctx, x, y, angle, node, callback) {
+      let endX = x + node.length * Math.cos(angle);
+      let endY = y + node.length * Math.sin(angle);
+
+      segments.push({ x1: x, y1: y, x2: endX, y2: endY });
+
+      let duration = 50;  // 50 ms per branch for very fast drawing.
+      animateBranch(ctx, x, y, endX, endY, node.width * 10, duration, function() {
+        if (node.children.length > 0) {
+          let pending = 0;
+          function childDone() {
+            pending--;
+            if (pending === 0 && callback) {
+              callback();
+            }
+          }
+          // Define an angular range (in radians) over which to spread the children.
+          let totalRange = 0.5; // e.g., ±0.25 around the parent's angle
+          for (let i = 0; i < node.children.length; i++) {
+            let baseOffset = 0;
+            if (node.children.length > 1) {
+              // Evenly distribute children between -totalRange/2 and +totalRange/2.
+              baseOffset = ((i - (node.children.length - 1) / 2) * (totalRange / (node.children.length - 1)));
+            }
+            // Add a small random jitter.
+            let randomJitter = (Math.random() - 0.5) * 0.2;
+            let desiredOffset = baseOffset + randomJitter;
+            let childAngle = findValidAngle(endX, endY, angle, node.children[i].length, segments, desiredOffset);
+            if (childAngle !== null) {
+              pending++;
+              animateTree(ctx, endX, endY, childAngle, node.children[i], childDone);
+            }
+          }
+          if (pending === 0 && callback) {
+            callback();
+          }
+        } else {
+          if (callback) {
+            callback();
+          }
+        }
+      });
+    }
+
+    /********************************************************************
+     * 3. Main Initialization
+     ********************************************************************/
+    window.onload = function() {
+      let canvas = document.getElementById("canvas");
+      let ctx = canvas.getContext("2d");
+
+      resizeCanvas(canvas);
+
+      function drawNewTree() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        segments = [];
+
+        // Generate a new tree with a root width of 10.
+        let tree = generateNode(Math.random() * 5 + 5);
+        let startX = canvas.width / 2;
+        let startY = 50;
+        let startAngle = Math.PI / 2;  // Pointing downward.
+
+        animateTree(ctx, startX, startY, startAngle, tree, () => {
+          console.log("Tree animation complete!");
+        });
+      }
+
+      drawNewTree();
+
+      canvas.addEventListener("click", () => {
+        drawNewTree();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.code === "Space") {
+          drawNewTree();
+        }
+      });
+
+      window.addEventListener("resize", () => {
+        resizeCanvas(canvas);
+        drawNewTree();
+      });
+    };
+  </script>
+</body>
+</html>

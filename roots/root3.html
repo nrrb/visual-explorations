@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Animated Non-Intersecting Random Tree</title>
+  <style>
+    body { margin: 0; }
+    canvas { display: block; margin: auto; background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <script>
+    // Global list to store all drawn segments for collision checking
+    let segments = [];
+
+    // Generate a random length with a skew using a power-law distribution.
+    function getRandomLength(min, max) {
+      return Math.pow(Math.random(), 2) * (max - min) + min;
+    }
+
+    // Recursively generate a tree node.
+    // Each node has a random length and width.
+    // If width > 0.1, the node spawns two children.
+    // The children’s widths are derived from a flow-based partition.
+    function generateNode(width) {
+      let node = {
+        length: getRandomLength(5.0, 50.0),
+        width: width,
+        children: []
+      };
+
+      if (width > 0.1) {
+        let flowFriction = 0.99;
+        // Flow is proportional to the cross-sectional area (π * (width/2)^2)
+        let remainingFlow = flowFriction * Math.PI * Math.pow(width / 2, 2);
+        let leftFlow = Math.pow(Math.random(), 2) * remainingFlow;
+        let rightFlow = remainingFlow - leftFlow;
+        let leftWidth = Math.sqrt(4 * leftFlow / Math.PI);
+        let rightWidth = Math.sqrt(4 * rightFlow / Math.PI);
+        node.children.push(generateNode(leftWidth));
+        node.children.push(generateNode(rightWidth));
+      }
+      return node;
+    }
+
+    // Helper functions for collision detection between two segments.
+    function ccw(xA, yA, xB, yB, xC, yC) {
+      return (yC - yA) * (xB - xA) > (yB - yA) * (xC - xA);
+    }
+    function segmentsIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+      // Endpoints that match are not considered intersections.
+      if ((x1 === x3 && y1 === y3) || (x1 === x4 && y1 === y4) ||
+          (x2 === x3 && y2 === y3) || (x2 === x4 && y2 === y4)) {
+        return false;
+      }
+      return (ccw(x1, y1, x3, y3, x4, y4) !== ccw(x2, y2, x3, y3, x4, y4)) &&
+             (ccw(x1, y1, x2, y2, x3, y3) !== ccw(x1, y1, x2, y2, x4, y4));
+    }
+
+    // Given a starting point (x, y), base angle, and branch length,
+    // this function searches for a candidate angle (from a range around a desired offset)
+    // that avoids intersecting previously drawn segments.
+    // 'sign' is +1 for a left branch and -1 for a right branch.
+    function findValidAngle(x, y, baseAngle, length, segments, desiredOffset, sign) {
+      let candidateAngles = [];
+      // Try candidate offsets in a range of ±0.3 radians (step size 0.05)
+      for (let delta = -0.3; delta <= 0.3; delta += 0.05) {
+        candidateAngles.push(baseAngle + sign * (desiredOffset + delta));
+      }
+      // Return the first candidate angle that yields a non-intersecting branch.
+      for (let angle of candidateAngles) {
+        let testX = x + length * Math.cos(angle);
+        let testY = y + length * Math.sin(angle);
+        let valid = true;
+        for (let seg of segments) {
+          if (segmentsIntersect(x, y, testX, testY, seg.x1, seg.y1, seg.x2, seg.y2)) {
+            valid = false;
+            break;
+          }
+        }
+        if (valid) {
+          return angle;
+        }
+      }
+      return null; // No valid angle found
+    }
+
+    // Animate drawing a branch from (startX, startY) to (endX, endY) over 'duration' milliseconds.
+    // Once complete, the provided callback is called.
+    function animateBranch(ctx, startX, startY, endX, endY, width, duration, callback) {
+      let startTime = null;
+      function animateStep(timestamp) {
+        if (!startTime) startTime = timestamp;
+        let progress = (timestamp - startTime) / duration;
+        if (progress > 1) progress = 1;
+        let currentX = startX + (endX - startX) * progress;
+        let currentY = startY + (endY - startY) * progress;
+        
+        // Draw the current portion of the branch.
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+        
+        if (progress < 1) {
+          requestAnimationFrame(animateStep);
+        } else {
+          callback();
+        }
+      }
+      requestAnimationFrame(animateStep);
+    }
+
+    // Recursively animate the tree.
+    // This function animates the branch for the current node, and once complete,
+    // it attempts to animate its children (if any) using valid angles.
+    function animateTree(ctx, x, y, angle, node, callback) {
+      let endX = x + node.length * Math.cos(angle);
+      let endY = y + node.length * Math.sin(angle);
+
+      // Record the segment immediately for collision checking.
+      segments.push({ x1: x, y1: y, x2: endX, y2: endY });
+
+      // Animate the branch. Adjust the scale factor for line width as needed.
+      let duration = 500; // milliseconds per branch (adjust as desired)
+      animateBranch(ctx, x, y, endX, endY, node.width * 10, duration, function() {
+        if (node.children.length === 2) {
+          // For each child, attempt to find a valid angle.
+          let desiredOffsetLeft = 0.2 + Math.random() * 0.5;
+          let leftAngle = findValidAngle(endX, endY, angle, node.children[0].length, segments, desiredOffsetLeft, +1);
+          let desiredOffsetRight = 0.2 + Math.random() * 0.5;
+          let rightAngle = findValidAngle(endX, endY, angle, node.children[1].length, segments, desiredOffsetRight, -1);
+          
+          // Animate both children in parallel.
+          let pending = 0;
+          function childDone() {
+            pending--;
+            if (pending === 0 && callback) {
+              callback();
+            }
+          }
+          if (leftAngle !== null) {
+            pending++;
+            animateTree(ctx, endX, endY, leftAngle, node.children[0], childDone);
+          }
+          if (rightAngle !== null) {
+            pending++;
+            animateTree(ctx, endX, endY, rightAngle, node.children[1], childDone);
+          }
+          if (pending === 0 && callback) {
+            callback();
+          }
+        } else {
+          if (callback) {
+            callback();
+          }
+        }
+      });
+    }
+
+    window.onload = function() {
+      let canvas = document.getElementById('canvas');
+      let ctx = canvas.getContext('2d');
+      ctx.strokeStyle = 'black';
+      
+      // Clear segments for a new drawing.
+      segments = [];
+      // Generate the random tree starting with a root width of 1.0.
+      let tree = generateNode(1.0);
+
+      // Start the animation from the top center of the canvas.
+      let startX = canvas.width / 2;
+      let startY = 50;
+      let startAngle = Math.PI / 2; // Pointing downward.
+
+      // Begin the animated drawing.
+      animateTree(ctx, startX, startY, startAngle, tree, function() {
+        console.log("Tree animation complete!");
+      });
+    };
+  </script>
+</body>
+</html>

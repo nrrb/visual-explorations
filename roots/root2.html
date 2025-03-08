@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Non-Intersecting Random Tree Visualization</title>
+  <style>
+    body { margin: 0; }
+    canvas { display: block; margin: auto; background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <script>
+    // Global list to store all drawn segments for collision checking
+    let segments = [];
+
+    // Generate a random length between 1.0 and 10.0
+    function getRandomLength(min, max) {
+      return Math.pow(Math.random(), 2) * (max - min) + min;
+    }
+
+    // Recursively generate a tree node with a random length and given width.
+    // If width > 0.1, the node spawns two children whose total width is 1.5 times the parent's.
+    function generateNode(width) {
+      let node = {
+        length: getRandomLength(5.0, 50.0),
+        width: width,
+        children: []
+      };
+
+      if (width > 0.1) {
+        let flowFriction = 0.99;
+        // flow is measured by the cross-section, so flow is proportional to
+        // the area computed by Math.PI * (width/2)**2. 
+        let remainingFlow = flowFriction * Math.PI * ((width / 2)**2);
+        let leftFlow = Math.pow(Math.random(), 2) * remainingFlow;
+        let rightFlow = remainingFlow - leftFlow;
+        let leftWidth = Math.sqrt(4 * leftFlow / Math.PI);
+        let rightWidth = Math.sqrt(4 * rightFlow / Math.PI);
+        node.children.push(generateNode(leftWidth));
+        node.children.push(generateNode(rightWidth));
+      }
+      return node;
+    }
+
+    // Helper function to test if two segments (p1->p2 and p3->p4) intersect.
+    // Endpoints that match are not considered intersections.
+    function ccw(xA, yA, xB, yB, xC, yC) {
+      return (yC - yA) * (xB - xA) > (yB - yA) * (xC - xA);
+    }
+    function segmentsIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+      // Skip checking if endpoints are shared.
+      if ((x1 === x3 && y1 === y3) || (x1 === x4 && y1 === y4) ||
+          (x2 === x3 && y2 === y3) || (x2 === x4 && y2 === y4)) {
+        return false;
+      }
+      return (ccw(x1, y1, x3, y3, x4, y4) !== ccw(x2, y2, x3, y3, x4, y4)) &&
+             (ccw(x1, y1, x2, y2, x3, y3) !== ccw(x1, y1, x2, y2, x4, y4));
+    }
+
+    // Given a starting point (x, y), a base angle, and a branch length,
+    // this function attempts to find a candidate angle (within a range around the desired offset)
+    // that does not cause the new segment to intersect any existing segments.
+    // 'sign' is +1 for the left branch (angle offset added) and -1 for the right branch.
+    function findValidAngle(x, y, baseAngle, length, segments, desiredOffset, sign) {
+      let candidateAngles = [];
+      // Try offsets in a range of ±0.3 radians (step size 0.05)
+      for (let delta = -0.3; delta <= 0.3; delta += 0.05) {
+        candidateAngles.push(baseAngle + sign * (desiredOffset + delta));
+      }
+      // Check each candidate angle.
+      for (let angle of candidateAngles) {
+        let testX = x + length * Math.cos(angle);
+        let testY = y + length * Math.sin(angle);
+        let valid = true;
+        for (let seg of segments) {
+          if (segmentsIntersect(x, y, testX, testY, seg.x1, seg.y1, seg.x2, seg.y2)) {
+            valid = false;
+            break;
+          }
+        }
+        if (valid) {
+          return angle;
+        }
+      }
+      return null; // No valid angle found
+    }
+
+    // Recursively draw the tree. Each node is drawn as a line starting at (x, y) in direction 'angle'.
+    // Before drawing a branch for a child, we check for intersections with previously drawn segments.
+    function drawTree(ctx, x, y, angle, node) {
+      let endX = x + node.length * Math.cos(angle);
+      let endY = y + node.length * Math.sin(angle);
+
+      // Record this segment so future branches can check against it.
+      segments.push({ x1: x, y1: y, x2: endX, y2: endY });
+
+      ctx.lineWidth = node.width * 10; // Scale factor for visibility
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      if (node.children.length === 2) {
+        // For the left branch, choose a desired offset randomly between 0.2 and 0.7 radians.
+        let desiredOffsetLeft = 0.2 + Math.random() * 0.5;
+        let leftAngle = findValidAngle(endX, endY, angle, node.children[0].length, segments, desiredOffsetLeft, +1);
+        // For the right branch, do the same but with a negative sign.
+        let desiredOffsetRight = 0.2 + Math.random() * 0.5;
+        let rightAngle = findValidAngle(endX, endY, angle, node.children[1].length, segments, desiredOffsetRight, -1);
+        
+        if (leftAngle !== null) {
+          drawTree(ctx, endX, endY, leftAngle, node.children[0]);
+        }
+        if (rightAngle !== null) {
+          drawTree(ctx, endX, endY, rightAngle, node.children[1]);
+        }
+      }
+    }
+
+    window.onload = function() {
+      let canvas = document.getElementById('canvas');
+      let ctx = canvas.getContext('2d');
+      ctx.strokeStyle = 'black';
+      
+      // Clear segments for a new drawing
+      segments = [];
+      // Generate the random tree starting with a root width of 1.0
+      let tree = generateNode(1.0);
+
+      // Start drawing from the top center of the canvas.
+      let startX = canvas.width / 2;
+      let startY = 50;
+      let startAngle = Math.PI / 2; // Pointing downward
+
+      drawTree(ctx, startX, startY, startAngle, tree);
+    };
+  </script>
+</body>
+</html>

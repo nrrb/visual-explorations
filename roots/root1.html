@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Random Tree Visualization</title>
+  <style>
+    body { margin: 0; }
+    canvas { display: block; margin: auto; background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <script>
+    // Generate a random length between 1.0 and 10.0
+    function getRandomLength(min, max) {
+      return Math.pow(Math.random(), 2) * (max - min) + min;
+    }
+
+    // Recursively generate a tree node
+    function generateNode(width) {
+      // Each node has a random length and a width
+      let node = {
+        length: getRandomLength(5.0, 50.0),
+        width: width,
+        children: []
+      };
+
+      // If the node's width is above threshold, generate two children.
+      if (width > 0.1) {
+        // Randomly partition the total available flow. One child will have
+        // a random smaller width than the parent, and the other child will
+        // have the remainder of the flow. 
+        let leftWidth = Math.random() * width * 0.98;
+        if(leftWidth < 0.1) leftWidth = 0.1;
+        let rightWidth = Math.sqrt(width**2 - leftWidth**2);
+        if(rightWidth < 0.1) rightWidth = 0.1;
+
+        // Recursively generate the two child nodes
+        node.children.push(generateNode(leftWidth));
+        node.children.push(generateNode(rightWidth));
+      }
+
+      return node;
+    }
+
+    // Draw the tree on the canvas recursively
+    function drawTree(ctx, x, y, angle, node) {
+      // Calculate the end point of the branch using the node's length and current angle
+      let endX = x + node.length * Math.cos(angle);
+      let endY = y + node.length * Math.sin(angle);
+
+      // Set the line width based on the node's width (scale factor added for visibility)
+      ctx.lineWidth = node.width * 5;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      // If the node has children, draw them using a random angle offset.
+      if (node.children.length === 2) {
+        // Choose a random offset angle (in radians) between 0.2 and 0.7
+        let offset = 0.2 + Math.random() * 0.5;
+        // Left branch: add the offset to the parent's angle
+        drawTree(ctx, endX, endY, angle + offset, node.children[0]);
+        // Right branch: subtract the offset from the parent's angle
+        drawTree(ctx, endX, endY, angle - offset, node.children[1]);
+      }
+    }
+
+    // Initialize canvas and generate/draw the tree
+    window.onload = function() {
+      let canvas = document.getElementById('canvas');
+      let ctx = canvas.getContext('2d');
+      ctx.strokeStyle = 'black';
+
+      // Generate the tree starting with a root width of 1.0
+      let tree = generateNode(1.0);
+
+      // Start drawing from the top center of the canvas
+      let startX = canvas.width / 2;
+      let startY = 50; // a little margin at the top
+      let startAngle = Math.PI / 2; // pointing downward
+
+      drawTree(ctx, startX, startY, startAngle, tree);
+    };
+  </script>
+</body>
+</html>
