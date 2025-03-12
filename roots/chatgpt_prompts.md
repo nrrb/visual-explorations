@@ -40,15 +40,15 @@ This is the result of a couple prompts.
 Re-do this rendering so that the lines avoid intersecting each other.
 ```
 
-Then I wanted to change the way the child roots have their widths determined, based on my hypothesis that there's a volume of water+nutrients that can flow through a given parent root of width W and that the child roots r_1 and r_2 with widths w_1 and w_2 should have an equal sum of flow as the parent root. Since the parent root's flow is proportional to the area of its cross-section $`pi*(W/2)^2`$ then the child roots widths should satisfy this equation:
+Then I wanted to change the way the child roots have their widths determined, based on my hypothesis that there's a volume of water+nutrients that can flow through a given parent root of width W and that the child roots r_1 and r_2 with widths w_1 and w_2 should have an equal sum of flow as the parent root. Since the parent root's flow is proportional to the area of its cross-section $`\pi*(W/2)^2`$ then the child roots widths should satisfy this equation:
 
-$`pi*(w_1/2)^2 + pi*(w_2/2)^2 = pi*(W/2)^2`$
+$`\pi*(w_1/2)^2 + \pi*(w_2/2)^2 = \pi*(W/2)^2`$
 
 Which can be simplified to:
 
-$`(pi/4)*w_1^2 + (pi/4)*w_2^2 = (pi/4)*W^2`$
+$`(\pi/4)*w_1^2 + (\pi/4)*w_2^2 = (\pi/4)*W^2`$
 
-Factoring out the constant $`pi/4`$, we find that the sum of the squares of the child roots should equal the square of the parent root. 
+Factoring out the constant $`\pi/4`$, we find that the sum of the squares of the child roots should equal the square of the parent root. 
 
 The easiest way for me to explain this to ChatGPT was to modify the code, provide it back to it, and let it understand what I did and update future code. 
 
