@@ -1,2 +1,7 @@
-# Visual Explorations
-Assorted explorations in visual concepts. More of a stash than a project.
+# Project Index
+
+This README automatically lists subdirectories that contain HTML content.
+
+## Subdirectories
+
+- [roots](./roots/index.html)
