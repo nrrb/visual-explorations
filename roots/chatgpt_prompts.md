@@ -6,7 +6,7 @@ ChatGPT has its limitations with code generation, but when I specify exactly wha
 
 ## root1
 
-[root1.html](root1.html)
+[root1.html](root1.html) ([view](https://nrrb.github.io/visual-explorations/roots/root1.html))
 
 ```
 I want to build an app with javascript. I want to generate a random tree data structure. Each node has a random length property between 1.0 and 10.0. Each node also has a width property. The root node has a width of 1.0. Each node links to two new nodes or no nodes. If the node's width > 0.1, then there are two new nodes. Each of the new nodes has a random length property between 1.0 and 10.0, and the total width of the two nodes is not greater than 1.5 times the width of the parent node.  The width of each of the nodes is randomly assigned, given a random partition of 1.5 times the parent node's width. A node will link to 0 nodes if that node's width is <= 0.1. 
@@ -16,7 +16,7 @@ I want to then visualize that tree structure where each node represents a line w
 
 ## root2
 
-[root2.html](root2.html)
+[root2.html](root2.html) ([view](https://nrrb.github.io/visual-explorations/roots/root2.html))
 
 This is the result of a couple prompts.
 
@@ -26,7 +26,7 @@ Re-do this rendering so that the lines avoid intersecting each other.
 
 Then I wanted to change the way the child roots have their widths determined, based on my hypothesis that there's a volume of water+nutrients that can flow through a given parent root of width W and that the child roots r_1 and r_2 with widths w_1 and w_2 should have an equal sum of flow as the parent root. Since the parent root's flow is proportional to the area of its cross-section $`pi*(W/2)^2`$ then the child roots widths should satisfy this equation:
 
-$`pi*(w_1/2^2 + pi*(w_2/2^2 = pi*(W/2^2`$
+$`pi*(w_1/2)^2 + pi*(w_2/2)^2 = pi*(W/2)^2`$
 
 Which can be simplified to:
 
@@ -183,7 +183,7 @@ I've updated the code as follows:
 ```
 ## root3
 
-[root3.html](root3.html)
+[root3.html](root3.html) ([view](https://nrrb.github.io/visual-explorations/roots/root3.html))
 
 It did remarkably well with this simple prompt:
 
@@ -193,7 +193,7 @@ Add animation
 
 ## root4
 
-[root4.html](root4.html)
+[root4.html](root4.html) ([view](https://nrrb.github.io/visual-explorations/roots/root4.html))
 
 I added re-generation with clicks and spacebar next. 
 
@@ -207,7 +207,7 @@ Change the event listener to listen for the space bar behind pressed too
 
 ## root5 
 
-[root5.html](root5.html)
+[root5.html](root5.html) ([view](https://nrrb.github.io/visual-explorations/roots/root5.html))
 
 For this modification, I did some manual modifications. I changed the initial thickness of the root, the animation delay from 500ms to 100ms, and the parameters for random size of the sub-roots. I did start with this prompt:
 
@@ -217,7 +217,7 @@ Make the canvas take up the entire viewport and make it responsive to work on mo
 
 ## root6
 
-[root6.html](root6.html)
+[root6.html](root6.html) ([view](https://nrrb.github.io/visual-explorations/roots/root6.html))
 
 ```
 Make the line segments the color of a carrot, and the background of the page to look like a cross-section of soil
@@ -253,7 +253,7 @@ Discard the lightest color
 
 ## root7
 
-[root7.html](root7.html)
+[root7.html](root7.html) ([view](https://nrrb.github.io/visual-explorations/roots/root7.html))
 
 For this one, I didn't think the carrot/soil colors were quite working so I switched to another color scheme using a reference image, and I wanted it to animate faster.
 
@@ -267,7 +267,7 @@ Change the animation duration to 50 ms and the starting width of the root to be 
 
 ## root8
 
-[root8.html](root8.html)
+[root8.html](root8.html) ([view](https://nrrb.github.io/visual-explorations/roots/root8.html))
 
 I decided I liked the carrot-ish root colors but not the soil color, so I brought it back:
 
@@ -580,6 +580,6 @@ The sum of the squares of each of the children nodes widths must equal the squar
 
 ## root9
 
-[root9.html](root9.html)
+[root9.html](root9.html) ([view](https://nrrb.github.io/visual-explorations/roots/root9.html))
 
 The only change here was manual, to make the root system go from white to black on a black background.
