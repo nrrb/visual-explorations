@@ -18,8 +18,9 @@ ChatGPT has its limitations with code generation, but when I specify exactly wha
 
 ## root1
 
-[root1.html](root1.html) ([view](https://nrrb.github.io/visual-explorations/roots/root1.html))
 ![screenshot of root1](media/root1.png)
+
+[root1.html](root1.html) ([view](https://nrrb.github.io/visual-explorations/roots/root1.html))
 
 ```
 I want to build an app with javascript. I want to generate a random tree data structure. Each node has a random length property between 1.0 and 10.0. Each node also has a width property. The root node has a width of 1.0. Each node links to two new nodes or no nodes. If the node's width > 0.1, then there are two new nodes. Each of the new nodes has a random length property between 1.0 and 10.0, and the total width of the two nodes is not greater than 1.5 times the width of the parent node.  The width of each of the nodes is randomly assigned, given a random partition of 1.5 times the parent node's width. A node will link to 0 nodes if that node's width is <= 0.1. 
@@ -29,8 +30,9 @@ I want to then visualize that tree structure where each node represents a line w
 
 ## root2
 
-[root2.html](root2.html) ([view](https://nrrb.github.io/visual-explorations/roots/root2.html))
 ![screenshot of root2](media/root2.png)
+
+[root2.html](root2.html) ([view](https://nrrb.github.io/visual-explorations/roots/root2.html))
 
 This is the result of a couple prompts.
 
@@ -197,9 +199,9 @@ I've updated the code as follows:
 ```
 ## root3
 
-[root3.html](root3.html) ([view](https://nrrb.github.io/visual-explorations/roots/root3.html))
 ![screenshot of root3](media/root3.png)
 
+[root3.html](root3.html) ([view](https://nrrb.github.io/visual-explorations/roots/root3.html))
 
 It did remarkably well with this simple prompt:
 
@@ -209,8 +211,9 @@ Add animation
 
 ## root4
 
-[root4.html](root4.html) ([view](https://nrrb.github.io/visual-explorations/roots/root4.html))
 ![screenshot of root4](media/root4.png)
+
+[root4.html](root4.html) ([view](https://nrrb.github.io/visual-explorations/roots/root4.html))
 
 I added re-generation with clicks and spacebar next. 
 
@@ -224,8 +227,9 @@ Change the event listener to listen for the space bar behind pressed too
 
 ## root5 
 
-[root5.html](root5.html) ([view](https://nrrb.github.io/visual-explorations/roots/root5.html))
 ![screenshot of root5](media/root5.png)
+
+[root5.html](root5.html) ([view](https://nrrb.github.io/visual-explorations/roots/root5.html))
 
 For this modification, I did some manual modifications. I changed the initial thickness of the root, the animation delay from 500ms to 100ms, and the parameters for random size of the sub-roots. I did start with this prompt:
 
@@ -235,8 +239,9 @@ Make the canvas take up the entire viewport and make it responsive to work on mo
 
 ## root6
 
-[root6.html](root6.html) ([view](https://nrrb.github.io/visual-explorations/roots/root6.html))
 ![screenshot of root6](media/root6.png)
+
+[root6.html](root6.html) ([view](https://nrrb.github.io/visual-explorations/roots/root6.html))
 
 ```
 Make the line segments the color of a carrot, and the background of the page to look like a cross-section of soil
@@ -272,8 +277,9 @@ Discard the lightest color
 
 ## root7
 
-[root7.html](root7.html) ([view](https://nrrb.github.io/visual-explorations/roots/root7.html))
 ![screenshot of root7](media/root7.png)
+
+[root7.html](root7.html) ([view](https://nrrb.github.io/visual-explorations/roots/root7.html))
 
 For this one, I didn't think the carrot/soil colors were quite working so I switched to another color scheme using a reference image, and I wanted it to animate faster.
 
@@ -287,8 +293,9 @@ Change the animation duration to 50 ms and the starting width of the root to be 
 
 ## root8
 
-[root8.html](root8.html) ([view](https://nrrb.github.io/visual-explorations/roots/root8.html))
 ![screenshot of root8](media/root8.png)
+
+[root8.html](root8.html) ([view](https://nrrb.github.io/visual-explorations/roots/root8.html))
 
 I decided I liked the carrot-ish root colors but not the soil color, so I brought it back:
 
@@ -601,7 +608,8 @@ The sum of the squares of each of the children nodes widths must equal the squar
 
 ## root9
 
-[root9.html](root9.html) ([view](https://nrrb.github.io/visual-explorations/roots/root9.html))
 ![screenshot of root9](media/root9.png)
+
+[root9.html](root9.html) ([view](https://nrrb.github.io/visual-explorations/roots/root9.html))
 
 The only change here was manual, to make the root system go from white to black on a black background.
