@@ -4,6 +4,18 @@ I used a series of prompts with the `o3-mini-high` model in ChatGPT to produce c
 
 ChatGPT has its limitations with code generation, but when I specify exactly what I want and I have the code literacy and library familiarity to modify what I get and make pointed counter-prompts, I'm able to get working examples. 
 
+## Table of Contents
+
+1. [root1](#root1)
+2. [root2](#root2)
+3. [root3](#root3)
+4. [root4](#root4)
+5. [root5](#root5)
+6. [root6](#root6)
+7. [root7](#root7)
+8. [root8](#root8)
+9. [root9](#root9)
+
 ## root1
 
 [root1.html](root1.html) ([view](https://nrrb.github.io/visual-explorations/roots/root1.html))
