@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Developer Starfield Banner</title>
+    <!-- Import highlight.js and github-dark theme -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+            background-color: #0c0c1d;
+            font-family: 'Courier New', monospace;
+        }
+        #banner-container {
+            position: relative;
+            width: 1584px;
+            height: 396px;
+            overflow: hidden;
+            margin: 0 auto;
+            background-color: #0c0c1d;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .text-overlay {
+            position: absolute;
+            top: 50%;
+            left: 60%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            z-index: 10;
+            text-shadow: 0 0 4px rgba(0,0,0,0.7);
+        }
+        .code-comment {
+            font-size: 14px;
+            color: #66ff66;
+            margin-top: 10px;
+        }
+        .code-display {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40%;
+            max-height: 90%;
+            overflow: hidden;
+            background-color: rgba(13, 17, 23, 0.75); /* GitHub Dark background with opacity */
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            backdrop-filter: blur(2px); /* Adds a slight blur to content behind the element */
+        }
+        /* Adjust highlight.js styling */
+        .hljs {
+            background: transparent !important;
+            padding: 0 !important;
+            overflow-x: hidden !important;
+        }
+        h1 {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="banner-container">
+        <canvas id="starfield"></canvas>
+        <div class="code-display">
+            <pre><code class="language-javascript">const canvas = document.createElement('canvas');
+document.body.appendChild(canvas);
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const ctx = canvas.getContext('2d');
+const stars = Array.from({length: 100}, 
+  () => ({
+    x: Math.random()*canvas.width, 
+    y: Math.random()*canvas.height, 
+    speed: Math.random()*3+1
+  })
+);
+
+(function animate() {
+  ctx.fillStyle = 'rgba(12,12,29,0.1)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  stars.forEach(star => {
+    star.x = (star.x + star.speed) % canvas.width;
+    ctx.fillStyle = 'white';
+    ctx.fillRect(star.x, star.y, 2, 2);
+  });
+  
+  requestAnimationFrame(animate);
+})();</code></pre>
+        </div>
+        <div class="text-overlay">
+            <h1>Frontend Developer</h1>
+            <p class="code-comment">// Decoding Dev Mysteries for Actual Humans</p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize highlight.js
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightBlock(block);
+            });
+        });
+
+        // Set up the canvas to exactly match LinkedIn banner dimensions
+        const canvas = document.getElementById('starfield');
+        const container = document.getElementById('banner-container');
+        canvas.width = 1584;
+        canvas.height = 396;
+        
+        const ctx = canvas.getContext('2d');
+        const stars = Array.from({length: 100}, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            speed: Math.random() * 3 + 1
+        }));
+        
+        (function animate() {
+            ctx.fillStyle = 'rgba(12,12,29,0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            stars.forEach(star => {
+                star.x = (star.x + star.speed) % canvas.width;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(star.x, star.y, 2, 2);
+            });
+            
+            requestAnimationFrame(animate);
+        })();
+    </script>
+</body>
+</html>
