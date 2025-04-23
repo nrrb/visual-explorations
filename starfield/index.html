@@ -1,7 +1,65 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>Index of /Users/nicholasbennett/code/visual-explorations/starfield</title></head><body>
-<h1>Index of /Users/nicholasbennett/code/visual-explorations/starfield</h1>
-<ul>
-<li><a href="./banner.html">banner.html</a></li>
-</ul>
-</body></html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Developer Starfield Banner</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+            background-color: #0c0c1d;
+            font-family: 'Courier New', monospace;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .text-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            z-index: 10;
+            text-shadow: 0 0 4px rgba(0,0,0,0.7);
+        }
+        .code-comment {
+            font-size: 14px;
+            color: #66ff66;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="text-overlay">
+        <h1>Frontend Developer</h1>
+        <p class="code-comment">// Decoding Dev Mysteries for Actual Humans</p>
+    </div>
+
+    <script>
+        const canvas = document.createElement('canvas');
+        document.body.appendChild(canvas);
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const ctx = canvas.getContext('2d');
+        const stars = Array.from({length: 100}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, speed: Math.random()*3+1}));
+        (function animate() {
+          ctx.fillStyle = 'rgba(12,12,29,0.1)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          stars.forEach(star => {star.x = (star.x + star.speed) % canvas.width; ctx.fillStyle = 'white'; ctx.fillRect(star.x, star.y, 2, 2);});
+          requestAnimationFrame(animate);
+        })();
+
+        // Handle window resizing
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
